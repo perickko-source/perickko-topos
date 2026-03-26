@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack-a-Mole - 80 y 90 Radio</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+        h1 { margin-bottom: 20px; color: #ffdd59; }
+        #ui-bar {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        #game-board {
+            position: relative;
+            width: 400px;
+            height: 300px;
+            background: linear-gradient(180deg, #8B7355 0%, #4A3728 100%);
+            border-radius: 10px;
+            border: 4px solid #5D4037;
+            overflow: hidden;
+        }
+        #game-board::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: #4CAF50;
+        }
+        .hole {
+            position: absolute;
+            width: 70px;
+            height: 35px;
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 50%, #1a1a1a 100%);
+            border-radius: 50%;
+            border: 3px solid #3E2723;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.8), 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        .row-1 { bottom: 180px; }
+        .row-2 { bottom: 100px; }
+        .row-3 { bottom: 20px; }
+        [data-index="0"] { left: 35px; }
+        [data-index="1"] { left: 155px; }
+        [data-index="2"] { left: 275px; }
+        [data-index="3"] { left: 35px; }
+        [data-index="4"] { left: 155px; }
+        [data-index="5"] { left: 275px; }
+        [data-index="6"] { left: 35px; }
+        [data-index="7"] { left: 155px; }
+        [data-index="8"] { left: 275px; }
+        .mole {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            z-index: 15;
+            animation: popUp 0.3s ease-out forwards;
+        }
+        .mole img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+        }
+        @keyframes popUp {
+            0% { bottom: -60px; transform: translateX(-50%) scale(0.5); }
+            100% { bottom: 0px; transform: translateX(-50%) scale(1); }
+        }
+        .mole.hiding {
+            animation: hideDown 0.3s ease-in forwards !important;
+            pointer-events: none;
+        }
+        @keyframes hideDown {
+            0% { bottom: 0px; transform: translateX(-50%) scale(1); opacity: 1; }
+            100% { bottom: -60px; transform: translateX(-50%) scale(0.5); opacity: 0; }
+        }
+        .mole.hit {
+            animation: hit 0.2s ease-out forwards;
+        }
+        @keyframes hit {
+            0% { bottom: 0px; transform: translateX(-50%) scale(1); }
+            100% { bottom: -60px; transform: translateX(-50%) scale(0.5); opacity: 0; }
+        }
+        .extra-time-clock {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            z-index: 20;
+            animation: popUp 0.3s ease-out forwards;
+        }
+        .extra-time-clock img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+        }
+        .extra-time-clock.hiding {
+            animation: hideDown 0.3s ease-in forwards !important;
+            pointer-events: none;
+        }
+        .extra-time-clock.clicked {
+            animation: clockCollect 0.3s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes clockCollect {
+            0% { bottom: 0px; transform: translateX(-50%) scale(1); opacity: 1; }
+            100% { bottom: 100px; transform: translateX(-50%) scale(1.5); opacity: 0; }
+        }
+        #extra-time-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffdd59;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 15px #ffdd59;
+            z-index: 100;
+            pointer-events: none;
+            display: none;
+        }
+        #extra-time-text.show {
+            display: block;
+            animation: textAppear 2s ease-out forwards;
+        }
+        @keyframes textAppear {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            40% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+        #start-btn {
+            margin-top: 20px;
+            padding: 15px 40px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #ffdd59, #f9ca24);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        #start-btn:hover { transform: scale(1.05); }
+        #start-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        #sound-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid white;
+            background: rgba(0,0,0,0.3);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        #sound-btn:hover {
+            background: rgba(0,0,0,0.5);
+            transform: scale(1.1);
+            border-color: #ffdd59;
+        }
+        .radio-container {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 150;
+            gap: 8px;
+        }
+        #radio-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid white;
+            background: rgba(0,0,0,0.3);
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        #radio-btn:hover {
+            background: rgba(0,0,0,0.5);
+            transform: scale(1.1);
+            border-color: #ffdd59;
+        }
+        .radio-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
+        .radio-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #radio-btn.loading .radio-overlay {
+            opacity: 1;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #radio-btn.playing {
+            border-color: #ff6b6b;
+            animation: pulse-radio 2s infinite;
+        }
+        @keyframes pulse-radio {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(255, 107, 107, 0); }
+        }
+        .radio-label {
+            font-size: 11px;
+            color: white;
+            text-align: center;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            white-space: nowrap;
+            font-weight: 500;
+            max-width: 100px;
+        }
+        #game-over-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        .game-over-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+        .game-over-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        .game-over-message {
+            font-size: 18px;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+        .game-over-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ffdd59;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <audio id="radio-audio" preload="none" crossorigin="anonymous">
+        <source src="https://stream.zeno.fm/ndhkmuknva0uv" type="audio/mpeg">
+    </audio>
+
+    <h1>🔨 Whack-a-Mole</h1>
+    
+    <div id="ui-bar">
+        <div>⏱️ <span id="timer">30</span>s</div>
+        <div>🎯 <span id="score">0</span></div>
+    </div>
+    
+    <div id="game-board">
+        <div id="extra-time-text">⏰ ¡TIEMPO EXTRA!</div>
+    </div>
+    
+    <button id="start-btn" onclick="startGame()">▶️ Jugar</button>
+    <button id="sound-btn" onclick="toggleSound()" title="Activar/Desactivar Sonido">🔊</button>
+    
+    <div class="radio-container">
+        <button id="radio-btn" onclick="toggleRadio()" title="Escuchar 80 y 90 Radio">
+            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgqvizWNyyqSmA1V6SOmns4wLWw849mHxRjABDTG0o2iyoHbsDPc9nc0rQW4iW6bfpIQLNn6pOgPlWsygdsuMury7g3ss1yJwDOJY1kHXyQwi53Lp9cyIMduU3NzUVaeme8n6V3_yhhGMEIb5XrCmuBejA6FoE5Uyt9ZmNYAqCxqhFmJf2wA9DpTtz9xg/s640/s80y90.png" 
+                 alt="80 y 90 Radio" 
+                 class="radio-img"
+                 id="radio-img">
+            <div class="radio-overlay" id="radio-overlay">🔄</div>
+        </button>
+        <span class="radio-label">80 y 90 Radio</span>
+    </div>
+    
+    <div id="game-over-screen" class="hidden">
+        <div class="game-over-content">
+            <div class="game-over-title">💥 ¡Fin del Juego!</div>
+            <div class="game-over-message">¡Se acabó el tiempo!</div>
+            <div class="game-over-score">🎯 Puntuación: <span id="final-score">0</span></div>
+            <button id="restart-btn" onclick="startGame()">🔄 Jugar Otra Vez</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        const radioAudio = document.getElementById('radio-audio');
+        const radioBtn = document.getElementById('radio-btn');
+        let radioEnabled = false;
+        let radioLoading = false;
+
+        const gameBoard = document.getElementById('game-board');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('start-btn');
+        const soundBtn = document.getElementById('sound-btn');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreEl = document.getElementById('final-score');
+        const extraTimeText = document.getElementById('extra-time-text');
+        
+        let score = 0;
+        let timeLeft = 30;
+        let gameRunning = false;
+        let gameInterval;
+        let moleInterval;
+        let activeMoles = [];
+        let soundEnabled = true;
+        let audioContext = null;
+        let extraTimeAvailable = false;
+        let extraTimeClock = null;
+        
+        // 🖼️ PRECARGAR LAS 10 IMÁGENES DE PÁJAROS
+        const perickkoImage = new Image();
+        perickkoImage.src = 'perickko.png';
+        
+        const valeforImage = new Image();
+        valeforImage.src = 'valefor.png';
+        
+        const kikoImage = new Image();
+        kikoImage.src = 'kiko.png';
+        
+        const nandorsImage = new Image();
+        nandorsImage.src = 'nandors.png';
+        
+        const alejandoImage = new Image();
+        alejandoImage.src = 'alejando.png';
+        
+        const cebolloImage = new Image();
+        cebolloImage.src = 'cebollo.png';
+        
+        const pakitoImage = new Image();
+        pakitoImage.src = 'pakito.png';
+        
+        const danijuImage = new Image();
+        danijuImage.src = 'daniju.png';
+        
+        const deividImage = new Image();
+        deividImage.src = 'deivid.png';
+        
+        const pepinoImage = new Image();  /* ✅ NUEVO PÁJARO */
+        pepinoImage.src = 'pepino.png';
+        
+        // ⏰ PRECARGAR IMAGEN DEL RELOJ
+        const relojImage = new Image();
+        relojImage.src = 'reloj.png';
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        function playSound(type) {
+            if (!soundEnabled || !audioContext) return;
+            
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            if (type === 'whack') {
+                osc.frequency.value = 600;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.1);
+            } else if (type === 'start') {
+                osc.frequency.value = 440;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.2);
+            } else if (type === 'gameover') {
+                osc.frequency.value = 200;
+                osc.type = 'sawtooth';
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.4);
+            } else if (type === 'hide') {
+                osc.frequency.value = 350;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.2);
+            } else if (type === 'extra-time') {
+                [500, 700, 900].forEach((f, i) => setTimeout(() => {
+                    const o = audioContext.createOscillator(), g = audioContext.createGain();
+                    o.connect(g); g.connect(audioContext.destination);
+                    o.frequency.value = f; o.type = 'sine';
+                    g.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    o.start(); o.stop(audioContext.currentTime + 0.2);
+                }, i * 150));
+            }
+        }
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            soundBtn.innerText = soundEnabled ? '🔊' : '🔇';
+        }
+        
+        function toggleRadio() {
+            if (radioLoading) return;
+            radioEnabled = !radioEnabled;
+            
+            if (radioEnabled) {
+                radioLoading = true;
+                radioBtn.classList.add('loading');
+                radioAudio.pause();
+                radioAudio.currentTime = 0;
+                
+                const playPromise = radioAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        radioLoading = false;
+                        radioBtn.classList.remove('loading');
+                        radioBtn.classList.add('playing');
+                    }).catch(error => {
+                        console.error('Error al reproducir radio:', error);
+                        radioEnabled = false;
+                        radioLoading = false;
+                        radioBtn.classList.remove('loading', 'playing');
+                        alert('❌ No se pudo conectar a 80 y 90 Radio.');
+                    });
+                }
+            } else {
+                radioAudio.pause();
+                radioBtn.classList.remove('playing', 'loading');
+            }
+        }
+        
+        function createHoles() {
+            gameBoard.innerHTML = '';
+            gameBoard.appendChild(extraTimeText);
+            
+            for (let i = 0; i < 9; i++) {
+                const hole = document.createElement('div');
+                hole.className = 'hole';
+                hole.dataset.index = i;
+                
+                if (i < 3) hole.classList.add('row-1');
+                else if (i < 6) hole.classList.add('row-2');
+                else hole.classList.add('row-3');
+                
+                gameBoard.appendChild(hole);
+            }
+        }
+        
+        // 🎲 OBTENER IMAGEN ALEATORIA (10 IMÁGENES)
+        function getRandomBirdImage() {
+            const birds = [perickkoImage, valeforImage, kikoImage, nandorsImage, alejandoImage, cebolloImage, pakitoImage, danijuImage, deividImage, pepinoImage];
+            const randomIndex = Math.floor(Math.random() * birds.length);
+            return birds[randomIndex];
+        }
+        
+        function spawnMole() {
+            if (!gameRunning) return;
+            
+            const available = [0,1,2,3,4,5,6,7,8].filter(i => !activeMoles.includes(i));
+            if (available.length === 0) return;
+            
+            const index = available[Math.floor(Math.random() * available.length)];
+            const hole = document.querySelector(`[data-index="${index}"]`);
+            
+            const mole = document.createElement('div');
+            mole.className = 'mole';
+            
+            const img = document.createElement('img');
+            const randomBird = getRandomBirdImage();
+            img.src = randomBird.src;
+            
+            if (randomBird === perickkoImage) {
+                img.alt = 'Perickko';
+            } else if (randomBird === valeforImage) {
+                img.alt = 'Valefor';
+            } else if (randomBird === kikoImage) {
+                img.alt = 'Kiko';
+            } else if (randomBird === nandorsImage) {
+                img.alt = 'Nandors';
+            } else if (randomBird === alejandoImage) {
+                img.alt = 'Alejando';
+            } else if (randomBird === cebolloImage) {
+                img.alt = 'Cebollo';
+            } else if (randomBird === pakitoImage) {
+                img.alt = 'Pakito';
+            } else if (randomBird === danijuImage) {
+                img.alt = 'Daniju';
+            } else if (randomBird === deividImage) {
+                img.alt = 'Deivid';
+            } else {
+                img.alt = 'Pepino';
+            }
+            
+            mole.appendChild(img);
+            
+            mole.addEventListener('click', (e) => {
+                e.stopPropagation();
+                whack(index, mole);
+            });
+            
+            hole.appendChild(mole);
+            activeMoles.push(index);
+            
+            setTimeout(() => {
+                if (mole.parentNode && !mole.classList.contains('hit') && !mole.classList.contains('hiding')) {
+                    hideMole(mole, index);
+                }
+            }, 1500);
+        }
+        
+        function hideMole(mole, index) {
+            mole.classList.add('hiding');
+            playSound('hide');
+            
+            setTimeout(() => {
+                if (mole.parentNode) {
+                    mole.remove();
+                    activeMoles = activeMoles.filter(i => i !== index);
+                }
+            }, 300);
+        }
+        
+        function whack(index, mole) {
+            if (!gameRunning) return;
+            
+            if (!mole || mole.classList.contains('hit') || mole.classList.contains('hiding')) return;
+            
+            mole.classList.add('hit');
+            score += 10;
+            scoreDisplay.innerText = score;
+            playSound('whack');
+            
+            setTimeout(() => {
+                if (mole.parentNode) {
+                    mole.remove();
+                    activeMoles = activeMoles.filter(i => i !== index);
+                }
+            }, 200);
+        }
+        
+        // ⏰ CREAR RELOJ DE TIEMPO EXTRA (1.5 SEGUNDOS)
+        function spawnExtraTimeClock() {
+            if (!gameRunning || extraTimeAvailable) return;
+            
+            const available = [0,1,2,3,4,5,6,7,8].filter(i => !activeMoles.includes(i));
+            if (available.length === 0) return;
+            
+            const index = available[Math.floor(Math.random() * available.length)];
+            const hole = document.querySelector(`[data-index="${index}"]`);
+            
+            extraTimeClock = document.createElement('div');
+            extraTimeClock.className = 'extra-time-clock';
+            
+            const img = document.createElement('img');
+            img.src = relojImage.src;
+            img.alt = 'Reloj Tiempo Extra';
+            extraTimeClock.appendChild(img);
+            
+            extraTimeClock.onclick = (e) => {
+                e.stopPropagation();
+                collectExtraTime(index);
+            };
+            
+            hole.appendChild(extraTimeClock);
+            extraTimeAvailable = true;
+            
+            // ✅ DESAPARECE DESPUÉS DE 1.5 SEGUNDOS
+            setTimeout(() => {
+                if (extraTimeAvailable && gameRunning && extraTimeClock && extraTimeClock.parentNode) {
+                    hideExtraTimeClock(index);
+                }
+            }, 1500);
+        }
+        
+        // ⏰ ESCONDER RELOJ SIN COLECTAR
+        function hideExtraTimeClock(index) {
+            if (!extraTimeClock || !extraTimeClock.parentNode) return;
+            
+            extraTimeClock.classList.add('hiding');
+            playSound('hide');
+            
+            setTimeout(() => {
+                if (extraTimeClock && extraTimeClock.parentNode) {
+                    extraTimeClock.remove();
+                    extraTimeClock = null;
+                    extraTimeAvailable = false;
+                }
+            }, 300);
+        }
+        
+        // ⏰ CONSEGUIR TIEMPO EXTRA
+        function collectExtraTime(index) {
+            if (!extraTimeAvailable || !gameRunning || !extraTimeClock) return;
+            
+            extraTimeAvailable = false;
+            timeLeft += 20;
+            timerDisplay.innerText = timeLeft;
+            
+            playSound('extra-time');
+            
+            extraTimeText.classList.add('show');
+            
+            setTimeout(() => {
+                extraTimeText.classList.remove('show');
+            }, 2000);
+            
+            extraTimeClock.classList.add('clicked');
+            
+            setTimeout(() => {
+                if (extraTimeClock && extraTimeClock.parentNode) {
+                    extraTimeClock.remove();
+                    extraTimeClock = null;
+                }
+            }, 300);
+            
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+        }
+        
+        function startTimer() {
+            timeLeft = 30;
+            timerDisplay.innerText = timeLeft;
+            extraTimeAvailable = false;
+            extraTimeText.classList.remove('show');
+            if (extraTimeClock) {
+                extraTimeClock.remove();
+                extraTimeClock = null;
+            }
+            
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+                
+                if (timeLeft === 5 && !extraTimeAvailable && gameRunning) {
+                    spawnExtraTimeClock();
+                }
+                
+                if (timeLeft <= 0) endGame();
+            }, 1000);
+        }
+        
+        function startGame() {
+            if (gameRunning) return;
+            
+            initAudio();
+            playSound('start');
+            
+            score = 0;
+            timeLeft = 30;
+            activeMoles = [];
+            extraTimeAvailable = false;
+            gameRunning = true;
+            
+            scoreDisplay.innerText = score;
+            timerDisplay.innerText = timeLeft;
+            
+            gameOverScreen.classList.add('hidden');
+            startBtn.style.display = 'none';
+            
+            extraTimeText.classList.remove('show');
+            if (extraTimeClock) {
+                extraTimeClock.remove();
+                extraTimeClock = null;
+            }
+            
+            createHoles();
+            startTimer();
+            
+            moleInterval = setInterval(spawnMole, 600);
+        }
+        
+        function endGame() {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            clearInterval(moleInterval);
+            
+            playSound('gameover');
+            
+            extraTimeText.classList.remove('show');
+            if (extraTimeClock) {
+                extraTimeClock.remove();
+                extraTimeClock = null;
+            }
+            extraTimeAvailable = false;
+            
+            finalScoreEl.innerText = score;
+            gameOverScreen.classList.remove('hidden');
+        }
+        
+        createHoles();
+    </script>
+</body>
+</html>
