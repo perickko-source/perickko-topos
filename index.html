@@ -23,9 +23,19 @@
         #ui-bar {
             display: flex;
             gap: 30px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-size: 20px;
         }
+        
+        /* 🎯 NIVEL (CENTRADO) */
+        #level-display {
+            font-size: 18px;
+            color: #4ecdc4;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+        
         #game-board {
             position: relative;
             width: 400px;
@@ -131,6 +141,8 @@
             0% { bottom: 0px; transform: translateX(-50%) scale(1); opacity: 1; }
             100% { bottom: 100px; transform: translateX(-50%) scale(1.5); opacity: 0; }
         }
+        
+        /* ⏰ TEXTO TIEMPO EXTRA (DENTRO DEL TABLERO) */
         #extra-time-text {
             position: absolute;
             top: 50%;
@@ -154,8 +166,45 @@
             40% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
             100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
         }
+        
+        /* 💬 MENSAJE DE APOYO (DEBAJO DEL TABLERO - FUERA) - MÁS PEQUEÑO */
+        #encouragement-message {
+            position: relative;
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 15px #ffdd59;
+            background: linear-gradient(135deg, rgba(255,221,89,0.9), rgba(249,202,36,0.9));
+            padding: 10px 20px;
+            border-radius: 15px;
+            z-index: 100;
+            pointer-events: none;
+            text-align: center;
+            min-height: 45px;
+            max-width: 380px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease-out;
+            word-wrap: break-word;
+        }
+        #encouragement-message.show {
+            opacity: 1;
+            transform: scale(1);
+            animation: messagePop 1.5s ease-out forwards;
+        }
+        @keyframes messagePop {
+            0% { opacity: 0; transform: scale(0.8); }
+            20% { opacity: 1; transform: scale(1.1); }
+            40% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+        
         #start-btn {
-            margin-top: 20px;
+            margin-top: 15px;
             padding: 15px 40px;
             font-size: 18px;
             background: linear-gradient(135deg, #ffdd59, #f9ca24);
@@ -321,9 +370,16 @@
         <div>🎯 <span id="score">0</span></div>
     </div>
     
+    <!-- 🎯 NIVEL (CENTRADO) -->
+    <div id="level-display">⭐ Modo Novato</div>
+    
     <div id="game-board">
+        <!-- ⏰ TEXTO TIEMPO EXTRA (DENTRO) -->
         <div id="extra-time-text">⏰ ¡TIEMPO EXTRA!</div>
     </div>
+    
+    <!-- 💬 MENSAJE DE APOYO (DEBAJO - FUERA) -->
+    <div id="encouragement-message"></div>
     
     <button id="start-btn" onclick="startGame()">▶️ Jugar</button>
     <button id="sound-btn" onclick="toggleSound()" title="Activar/Desactivar Sonido">🔊</button>
@@ -361,14 +417,17 @@
         const gameBoard = document.getElementById('game-board');
         const scoreDisplay = document.getElementById('score');
         const timerDisplay = document.getElementById('timer');
+        const levelDisplay = document.getElementById('level-display');
         const startBtn = document.getElementById('start-btn');
         const soundBtn = document.getElementById('sound-btn');
         const gameOverScreen = document.getElementById('game-over-screen');
         const finalScoreEl = document.getElementById('final-score');
         const extraTimeText = document.getElementById('extra-time-text');
+        const encouragementMessage = document.getElementById('encouragement-message');
         
         let score = 0;
         let timeLeft = 30;
+        let level = 1;
         let gameRunning = false;
         let gameInterval;
         let moleInterval;
@@ -378,7 +437,11 @@
         let extraTimeAvailable = false;
         let extraTimeClock = null;
         
-        // 🖼️ PRECARGAR LAS 10 IMÁGENES DE PÁJAROS
+        // ⏱️ VELOCIDAD DEL JUEGO (se actualiza con el nivel)
+        let spawnRate = 600;        // Tiempo entre pájaros (ms)
+        let moleVisibleTime = 1500; // Tiempo visible el pájaro (ms)
+        
+        // 🖼️ PRECARGAR LAS 11 IMÁGENES DE PÁJAROS
         const perickkoImage = new Image();
         perickkoImage.src = 'perickko.png';
         
@@ -406,12 +469,107 @@
         const deividImage = new Image();
         deividImage.src = 'deivid.png';
         
-        const pepinoImage = new Image();  /* ✅ NUEVO PÁJARO */
+        const pepinoImage = new Image();
         pepinoImage.src = 'pepino.png';
+        
+        const paolaImage = new Image();
+        paolaImage.src = 'paola.png';
         
         // ⏰ PRECARGAR IMAGEN DEL RELOJ
         const relojImage = new Image();
         relojImage.src = 'reloj.png';
+
+        // 🎯 20 NIVELES CON "MODO" DELANTE + MODO DIOS
+        const levelNames = [
+            '⭐ Modo Novato',
+            '🎯 Modo Aprendiz',
+            '🔨 Modo Golpeador',
+            '💪 Modo Valiente',
+            '⚡ Modo Rápido',
+            '🎪 Modo Artista',
+            '🏆 Modo Campeón',
+            '👑 Modo Maestro',
+            '🔥 Modo Experto',
+            '💎 Modo Elite',
+            '🌟 Modo Leyenda',
+            '🚀 Modo Cohete',
+            '⚡ Modo Rayo',
+            '🎯 Modo Francotirador',
+            '💀 Modo Destructor',
+            '👹 Modo Demonio',
+            '🤖 Modo Máquina',
+            '👽 Modo Alien',
+            '🦸 Modo Superhéroe',
+            '🔥 Modo PUTO AMO',
+            '💀 MODO DIOS'  // ✅ NIVEL 21+ (INFINITO)
+        ];
+
+        // 💬 MENSAJES DIVERTIDOS (MÁS CORTOS)
+        const encouragementMessages = [
+            '¡Vamos, tú puedes! 💪',
+            '¡Dale duro! 🔨',
+            '¡Más rápido! ⚡',
+            '¡Así se hace! 👑',
+            '¡Whola! 😎',
+            '¡Eres una bestia! 🦾',
+            '¡Dale que te doy! 💥',
+            '¡Qué locura! 🤪',
+            '¡Imparable! 🔥',
+            '¡Eres leyenda! 🌟',
+            '¡Sigue así! 🤖',
+            '¡Esto es arte! 🎨',
+            '¡Brutal! 💀',
+            '¡Eres un dios! ⚡',
+            '¡Qué nivel! 😱',
+            '¡Otro rollo! 🎮',
+            '¡PUTO AMO! 👑',
+            '¡No te paras! 🚧',
+            '¡Nivel dios! 🙏',
+            '¡A tope! 🚀'
+        ];
+
+        // 🎯 MENSAJES DE MILESTONE (MÁS CORTOS)
+        const milestoneMessages = {
+            50: '¡50 Puntos! Modo Aprendiz 🎯',
+            100: '¡100 Puntos! Doble dígito 💯',
+            150: '¡150 Puntos! Valiente 💪',
+            200: '¡200 Puntos! Rápido ⚡',
+            250: '¡250 Puntos! Artista 🎨',
+            300: '¡300 Puntos! Campeón 🏆',
+            350: '¡350 Puntos! Maestro 🧙',
+            400: '¡400 Puntos! Experto 📜',
+            450: '¡450 Puntos! Élite 💎',
+            500: '¡500 Puntos! LEYENDA 🌟',
+            600: '¡600 Puntos! Luz ⚡',
+            700: '¡700 Puntos! Destructor 💀',
+            800: '¡800 Puntos! MÁQUINA 🤖',
+            900: '¡900 Puntos! SUPERHÉROE 🦸',
+            1000: '¡1000 Puntos! PUTO AMO 🔥',
+            1500: '¡1500 Puntos! ¿ERES DIOS? 💀',
+            2000: '¡2000 Puntos! IMPOSIBLE 🤯'
+        };
+
+        // ⏱️ CALCULAR VELOCIDAD SEGÚN NIVEL
+        function updateGameSpeed() {
+            if (level <= 20) {
+                // Niveles 1-20: velocidad progresiva
+                // Cada nivel: -20ms spawn, -50ms visible
+                spawnRate = Math.max(200, 600 - (level - 1) * 20);
+                moleVisibleTime = Math.max(500, 1500 - (level - 1) * 50);
+            } else {
+                // MODO DIOS (nivel 21+): velocidad infinita
+                // Cada nivel Dios: -10ms spawn, -25ms visible (sin límite mínimo)
+                const diosLevel = level - 20;
+                spawnRate = Math.max(80, 600 - (20 * 20) - (diosLevel * 10));
+                moleVisibleTime = Math.max(200, 1500 - (20 * 50) - (diosLevel * 25));
+            }
+            
+            // Reiniciar el intervalo con la nueva velocidad
+            if (gameRunning) {
+                clearInterval(moleInterval);
+                moleInterval = setInterval(spawnMole, spawnRate);
+            }
+        }
 
         function initAudio() {
             if (!audioContext) {
@@ -464,6 +622,23 @@
                     g.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
                     o.start(); o.stop(audioContext.currentTime + 0.2);
                 }, i * 150));
+            } else if (type === 'encouragement') {
+                osc.frequency.value = 700;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.2);
+            } else if (type === 'level-up') {
+                // Sonido especial al subir de nivel
+                [400, 600, 800].forEach((f, i) => setTimeout(() => {
+                    const o = audioContext.createOscillator(), g = audioContext.createGain();
+                    o.connect(g); g.connect(audioContext.destination);
+                    o.frequency.value = f; o.type = 'sine';
+                    g.gain.setValueAtTime(0.25, audioContext.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                    o.start(); o.stop(audioContext.currentTime + 0.15);
+                }, i * 100));
             }
         }
         
@@ -502,6 +677,61 @@
             }
         }
         
+        // 💬 MOSTRAR MENSAJE DE APOYO
+        function showEncouragement(isMilestone = false, milestoneScore = 0) {
+            let message = '';
+            
+            if (isMilestone && milestoneMessages[milestoneScore]) {
+                message = milestoneMessages[milestoneScore];
+            } else {
+                message = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+            }
+            
+            encouragementMessage.innerText = message;
+            encouragementMessage.classList.remove('show');
+            
+            // Forzar reflow para reiniciar animación
+            void encouragementMessage.offsetWidth;
+            
+            encouragementMessage.classList.add('show');
+            playSound('encouragement');
+        }
+        
+        // 🎯 ACTUALIZAR NIVEL Y VELOCIDAD
+        function updateLevel() {
+            // Nivel basado en puntuación (cada 50 puntos = 1 nivel)
+            const newLevel = Math.floor(score / 50) + 1;
+            
+            // Si sube de nivel, mostrar mensaje y actualizar velocidad
+            if (newLevel > level) {
+                level = newLevel;
+                
+                // Mensaje de nivel (cada 5 niveles o al entrar en Modo DIOS)
+                if (level % 5 === 0 || level === 21) {
+                    if (level >= 21) {
+                        levelDisplay.innerText = '💀 MODO DIOS ' + (level - 20);
+                        levelDisplay.style.color = '#ff6b6b';
+                    } else {
+                        levelDisplay.innerText = levelNames[level - 1];
+                        levelDisplay.style.color = '#4ecdc4';
+                    }
+                    showEncouragement(true, score);
+                    playSound('level-up');
+                } else {
+                    if (level >= 21) {
+                        levelDisplay.innerText = '💀 MODO DIOS ' + (level - 20);
+                        levelDisplay.style.color = '#ff6b6b';
+                    } else {
+                        levelDisplay.innerText = levelNames[level - 1];
+                        levelDisplay.style.color = '#4ecdc4';
+                    }
+                }
+                
+                // ✅ ACTUALIZAR VELOCIDAD DEL JUEGO
+                updateGameSpeed();
+            }
+        }
+        
         function createHoles() {
             gameBoard.innerHTML = '';
             gameBoard.appendChild(extraTimeText);
@@ -519,9 +749,9 @@
             }
         }
         
-        // 🎲 OBTENER IMAGEN ALEATORIA (10 IMÁGENES)
+        // 🎲 OBTENER IMAGEN ALEATORIA (11 IMÁGENES)
         function getRandomBirdImage() {
-            const birds = [perickkoImage, valeforImage, kikoImage, nandorsImage, alejandoImage, cebolloImage, pakitoImage, danijuImage, deividImage, pepinoImage];
+            const birds = [perickkoImage, valeforImage, kikoImage, nandorsImage, alejandoImage, cebolloImage, pakitoImage, danijuImage, deividImage, pepinoImage, paolaImage];
             const randomIndex = Math.floor(Math.random() * birds.length);
             return birds[randomIndex];
         }
@@ -560,8 +790,10 @@
                 img.alt = 'Daniju';
             } else if (randomBird === deividImage) {
                 img.alt = 'Deivid';
-            } else {
+            } else if (randomBird === pepinoImage) {
                 img.alt = 'Pepino';
+            } else {
+                img.alt = 'Paola';
             }
             
             mole.appendChild(img);
@@ -574,11 +806,12 @@
             hole.appendChild(mole);
             activeMoles.push(index);
             
+            // ✅ USAR moleVisibleTime DINÁMICO
             setTimeout(() => {
                 if (mole.parentNode && !mole.classList.contains('hit') && !mole.classList.contains('hiding')) {
                     hideMole(mole, index);
                 }
-            }, 1500);
+            }, moleVisibleTime);
         }
         
         function hideMole(mole, index) {
@@ -602,6 +835,16 @@
             score += 10;
             scoreDisplay.innerText = score;
             playSound('whack');
+            
+            // ✅ ACTUALIZAR NIVEL Y VELOCIDAD
+            updateLevel();
+            
+            // ✅ MOSTRAR MENSAJE DE APOYO CADA 50 PUNTOS
+            if (score % 50 === 0 && milestoneMessages[score]) {
+                showEncouragement(true, score);
+            } else if (score % 25 === 0) {
+                showEncouragement(false);
+            }
             
             setTimeout(() => {
                 if (mole.parentNode) {
@@ -637,7 +880,6 @@
             hole.appendChild(extraTimeClock);
             extraTimeAvailable = true;
             
-            // ✅ DESAPARECE DESPUÉS DE 1.5 SEGUNDOS
             setTimeout(() => {
                 if (extraTimeAvailable && gameRunning && extraTimeClock && extraTimeClock.parentNode) {
                     hideExtraTimeClock(index);
@@ -645,7 +887,6 @@
             }, 1500);
         }
         
-        // ⏰ ESCONDER RELOJ SIN COLECTAR
         function hideExtraTimeClock(index) {
             if (!extraTimeClock || !extraTimeClock.parentNode) return;
             
@@ -661,7 +902,6 @@
             }, 300);
         }
         
-        // ⏰ CONSEGUIR TIEMPO EXTRA
         function collectExtraTime(index) {
             if (!extraTimeAvailable || !gameRunning || !extraTimeClock) return;
             
@@ -721,12 +961,19 @@
             
             score = 0;
             timeLeft = 30;
+            level = 1;
+            spawnRate = 600;        // ✅ RESET VELOCIDAD
+            moleVisibleTime = 1500; // ✅ RESET VELOCIDAD
             activeMoles = [];
             extraTimeAvailable = false;
             gameRunning = true;
             
             scoreDisplay.innerText = score;
             timerDisplay.innerText = timeLeft;
+            levelDisplay.innerText = levelNames[0];  // ⭐ Modo Novato
+            levelDisplay.style.color = '#4ecdc4';
+            encouragementMessage.innerText = '';
+            encouragementMessage.classList.remove('show');
             
             gameOverScreen.classList.add('hidden');
             startBtn.style.display = 'none';
@@ -740,7 +987,8 @@
             createHoles();
             startTimer();
             
-            moleInterval = setInterval(spawnMole, 600);
+            // ✅ INICIAR CON spawnRate DINÁMICO
+            moleInterval = setInterval(spawnMole, spawnRate);
         }
         
         function endGame() {
@@ -751,6 +999,7 @@
             playSound('gameover');
             
             extraTimeText.classList.remove('show');
+            encouragementMessage.classList.remove('show');
             if (extraTimeClock) {
                 extraTimeClock.remove();
                 extraTimeClock = null;
