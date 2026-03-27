@@ -26,8 +26,6 @@
             margin-bottom: 10px;
             font-size: 20px;
         }
-        
-        /* 🎯 NIVEL (CENTRADO) */
         #level-display {
             font-size: 18px;
             color: #4ecdc4;
@@ -35,7 +33,6 @@
             font-weight: bold;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
-        
         #game-board {
             position: relative;
             width: 400px;
@@ -141,8 +138,6 @@
             0% { bottom: 0px; transform: translateX(-50%) scale(1); opacity: 1; }
             100% { bottom: 100px; transform: translateX(-50%) scale(1.5); opacity: 0; }
         }
-        
-        /* ⏰ TEXTO TIEMPO EXTRA (DENTRO DEL TABLERO) */
         #extra-time-text {
             position: absolute;
             top: 50%;
@@ -166,8 +161,6 @@
             40% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
             100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
         }
-        
-        /* 💬 MENSAJE DE APOYO (DEBAJO DEL TABLERO - FUERA) - MÁS PEQUEÑO */
         #encouragement-message {
             position: relative;
             margin-top: 15px;
@@ -202,7 +195,6 @@
             40% { opacity: 1; transform: scale(1); }
             100% { opacity: 0; transform: scale(1); }
         }
-        
         #start-btn {
             margin-top: 15px;
             padding: 15px 40px;
@@ -370,15 +362,12 @@
         <div>🎯 <span id="score">0</span></div>
     </div>
     
-    <!-- 🎯 NIVEL (CENTRADO) -->
     <div id="level-display">⭐ Modo Novato</div>
     
     <div id="game-board">
-        <!-- ⏰ TEXTO TIEMPO EXTRA (DENTRO) -->
         <div id="extra-time-text">⏰ ¡TIEMPO EXTRA!</div>
     </div>
     
-    <!-- 💬 MENSAJE DE APOYO (DEBAJO - FUERA) -->
     <div id="encouragement-message"></div>
     
     <button id="start-btn" onclick="startGame()">▶️ Jugar</button>
@@ -437,11 +426,10 @@
         let extraTimeAvailable = false;
         let extraTimeClock = null;
         
-        // ⏱️ VELOCIDAD DEL JUEGO (se actualiza con el nivel)
-        let spawnRate = 600;        // Tiempo entre pájaros (ms)
-        let moleVisibleTime = 1500; // Tiempo visible el pájaro (ms)
+        let spawnRate = 600;
+        let moleVisibleTime = 1500;
         
-        // 🖼️ PRECARGAR LAS 11 IMÁGENES DE PÁJAROS
+        // 🖼️ PRECARGAR LAS 13 IMÁGENES DE PÁJAROS
         const perickkoImage = new Image();
         perickkoImage.src = 'perickko.png';
         
@@ -475,11 +463,16 @@
         const paolaImage = new Image();
         paolaImage.src = 'paola.png';
         
+        const carlitosImage = new Image();
+        carlitosImage.src = 'carlitos.png';
+        
+        const masmeImage = new Image();  /* ✅ NUEVO PÁJARO */
+        masmeImage.src = 'masme.png';
+        
         // ⏰ PRECARGAR IMAGEN DEL RELOJ
         const relojImage = new Image();
         relojImage.src = 'reloj.png';
 
-        // 🎯 20 NIVELES CON "MODO" DELANTE + MODO DIOS
         const levelNames = [
             '⭐ Modo Novato',
             '🎯 Modo Aprendiz',
@@ -501,10 +494,9 @@
             '👽 Modo Alien',
             '🦸 Modo Superhéroe',
             '🔥 Modo PUTO AMO',
-            '💀 MODO DIOS'  // ✅ NIVEL 21+ (INFINITO)
+            '💀 MODO DIOS'
         ];
 
-        // 💬 MENSAJES DIVERTIDOS (MÁS CORTOS)
         const encouragementMessages = [
             '¡Vamos, tú puedes! 💪',
             '¡Dale duro! 🔨',
@@ -528,7 +520,6 @@
             '¡A tope! 🚀'
         ];
 
-        // 🎯 MENSAJES DE MILESTONE (MÁS CORTOS)
         const milestoneMessages = {
             50: '¡50 Puntos! Modo Aprendiz 🎯',
             100: '¡100 Puntos! Doble dígito 💯',
@@ -549,22 +540,16 @@
             2000: '¡2000 Puntos! IMPOSIBLE 🤯'
         };
 
-        // ⏱️ CALCULAR VELOCIDAD SEGÚN NIVEL
         function updateGameSpeed() {
             if (level <= 20) {
-                // Niveles 1-20: velocidad progresiva
-                // Cada nivel: -20ms spawn, -50ms visible
                 spawnRate = Math.max(200, 600 - (level - 1) * 20);
                 moleVisibleTime = Math.max(500, 1500 - (level - 1) * 50);
             } else {
-                // MODO DIOS (nivel 21+): velocidad infinita
-                // Cada nivel Dios: -10ms spawn, -25ms visible (sin límite mínimo)
                 const diosLevel = level - 20;
                 spawnRate = Math.max(80, 600 - (20 * 20) - (diosLevel * 10));
                 moleVisibleTime = Math.max(200, 1500 - (20 * 50) - (diosLevel * 25));
             }
             
-            // Reiniciar el intervalo con la nueva velocidad
             if (gameRunning) {
                 clearInterval(moleInterval);
                 moleInterval = setInterval(spawnMole, spawnRate);
@@ -630,7 +615,6 @@
                 osc.start();
                 osc.stop(audioContext.currentTime + 0.2);
             } else if (type === 'level-up') {
-                // Sonido especial al subir de nivel
                 [400, 600, 800].forEach((f, i) => setTimeout(() => {
                     const o = audioContext.createOscillator(), g = audioContext.createGain();
                     o.connect(g); g.connect(audioContext.destination);
@@ -677,7 +661,6 @@
             }
         }
         
-        // 💬 MOSTRAR MENSAJE DE APOYO
         function showEncouragement(isMilestone = false, milestoneScore = 0) {
             let message = '';
             
@@ -689,24 +672,17 @@
             
             encouragementMessage.innerText = message;
             encouragementMessage.classList.remove('show');
-            
-            // Forzar reflow para reiniciar animación
             void encouragementMessage.offsetWidth;
-            
             encouragementMessage.classList.add('show');
             playSound('encouragement');
         }
         
-        // 🎯 ACTUALIZAR NIVEL Y VELOCIDAD
         function updateLevel() {
-            // Nivel basado en puntuación (cada 50 puntos = 1 nivel)
             const newLevel = Math.floor(score / 50) + 1;
             
-            // Si sube de nivel, mostrar mensaje y actualizar velocidad
             if (newLevel > level) {
                 level = newLevel;
                 
-                // Mensaje de nivel (cada 5 niveles o al entrar en Modo DIOS)
                 if (level % 5 === 0 || level === 21) {
                     if (level >= 21) {
                         levelDisplay.innerText = '💀 MODO DIOS ' + (level - 20);
@@ -727,7 +703,6 @@
                     }
                 }
                 
-                // ✅ ACTUALIZAR VELOCIDAD DEL JUEGO
                 updateGameSpeed();
             }
         }
@@ -749,9 +724,9 @@
             }
         }
         
-        // 🎲 OBTENER IMAGEN ALEATORIA (11 IMÁGENES)
+        // 🎲 OBTENER IMAGEN ALEATORIA (13 IMÁGENES)
         function getRandomBirdImage() {
-            const birds = [perickkoImage, valeforImage, kikoImage, nandorsImage, alejandoImage, cebolloImage, pakitoImage, danijuImage, deividImage, pepinoImage, paolaImage];
+            const birds = [perickkoImage, valeforImage, kikoImage, nandorsImage, alejandoImage, cebolloImage, pakitoImage, danijuImage, deividImage, pepinoImage, paolaImage, carlitosImage, masmeImage];
             const randomIndex = Math.floor(Math.random() * birds.length);
             return birds[randomIndex];
         }
@@ -792,8 +767,12 @@
                 img.alt = 'Deivid';
             } else if (randomBird === pepinoImage) {
                 img.alt = 'Pepino';
-            } else {
+            } else if (randomBird === paolaImage) {
                 img.alt = 'Paola';
+            } else if (randomBird === carlitosImage) {
+                img.alt = 'Carlitos';
+            } else {
+                img.alt = 'Masme';
             }
             
             mole.appendChild(img);
@@ -806,7 +785,6 @@
             hole.appendChild(mole);
             activeMoles.push(index);
             
-            // ✅ USAR moleVisibleTime DINÁMICO
             setTimeout(() => {
                 if (mole.parentNode && !mole.classList.contains('hit') && !mole.classList.contains('hiding')) {
                     hideMole(mole, index);
@@ -836,10 +814,8 @@
             scoreDisplay.innerText = score;
             playSound('whack');
             
-            // ✅ ACTUALIZAR NIVEL Y VELOCIDAD
             updateLevel();
             
-            // ✅ MOSTRAR MENSAJE DE APOYO CADA 50 PUNTOS
             if (score % 50 === 0 && milestoneMessages[score]) {
                 showEncouragement(true, score);
             } else if (score % 25 === 0) {
@@ -854,7 +830,6 @@
             }, 200);
         }
         
-        // ⏰ CREAR RELOJ DE TIEMPO EXTRA (1.5 SEGUNDOS)
         function spawnExtraTimeClock() {
             if (!gameRunning || extraTimeAvailable) return;
             
@@ -962,15 +937,15 @@
             score = 0;
             timeLeft = 30;
             level = 1;
-            spawnRate = 600;        // ✅ RESET VELOCIDAD
-            moleVisibleTime = 1500; // ✅ RESET VELOCIDAD
+            spawnRate = 600;
+            moleVisibleTime = 1500;
             activeMoles = [];
             extraTimeAvailable = false;
             gameRunning = true;
             
             scoreDisplay.innerText = score;
             timerDisplay.innerText = timeLeft;
-            levelDisplay.innerText = levelNames[0];  // ⭐ Modo Novato
+            levelDisplay.innerText = levelNames[0];
             levelDisplay.style.color = '#4ecdc4';
             encouragementMessage.innerText = '';
             encouragementMessage.classList.remove('show');
@@ -987,7 +962,6 @@
             createHoles();
             startTimer();
             
-            // ✅ INICIAR CON spawnRate DINÁMICO
             moleInterval = setInterval(spawnMole, spawnRate);
         }
         
