@@ -7,8 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Whack-a-Mole - 80 y 90 Radio</title>
-    <!-- ✅ TELEGRAM GAMES SDK -->
-    <script src="https://telegram.org/js/games.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { 
             box-sizing: border-box; 
@@ -111,18 +110,18 @@
             z-index: 10;
             -webkit-tap-highlight-color: transparent;
         }
-        .row-1 { bottom: min(180px, 40.5vw); }
-        .row-2 { bottom: min(100px, 22.5vw); }
-        .row-3 { bottom: min(20px, 4.5vw); }
-        [data-index="0"] { left: min(35px, 7.875vw); }
-        [data-index="1"] { left: min(155px, 34.875vw); }
-        [data-index="2"] { left: min(275px, 61.875vw); }
-        [data-index="3"] { left: min(35px, 7.875vw); }
-        [data-index="4"] { left: min(155px, 34.875vw); }
-        [data-index="5"] { left: min(275px, 61.875vw); }
-        [data-index="6"] { left: min(35px, 7.875vw); }
-        [data-index="7"] { left: min(155px, 34.875vw); }
-        [data-index="8"] { left: min(275px, 61.875vw); }
+        .row-1 { bottom: 180px; bottom: min(180px, 40.5vw); }
+        .row-2 { bottom: 100px; bottom: min(100px, 22.5vw); }
+        .row-3 { bottom: 20px; bottom: min(20px, 4.5vw); }
+        [data-index="0"] { left: 35px; left: min(35px, 7.875vw); }
+        [data-index="1"] { left: 155px; left: min(155px, 34.875vw); }
+        [data-index="2"] { left: 275px; left: min(275px, 61.875vw); }
+        [data-index="3"] { left: 35px; left: min(35px, 7.875vw); }
+        [data-index="4"] { left: 155px; left: min(155px, 34.875vw); }
+        [data-index="5"] { left: 275px; left: min(275px, 61.875vw); }
+        [data-index="6"] { left: 35px; left: min(35px, 7.875vw); }
+        [data-index="7"] { left: 155px; left: min(155px, 34.875vw); }
+        [data-index="8"] { left: 275px; left: min(275px, 61.875vw); }
         .mole {
             position: absolute;
             bottom: 0;
@@ -145,7 +144,7 @@
             pointer-events: none;
         }
         @keyframes popUp {
-            0% { bottom: min(-60px, -13.5vw); transform: translateX(-50%) scale(0.5); }
+            0% { bottom: -60px; bottom: min(-60px, -13.5vw); transform: translateX(-50%) scale(0.5); }
             100% { bottom: 0px; transform: translateX(-50%) scale(1); }
         }
         .mole.hiding {
@@ -154,14 +153,14 @@
         }
         @keyframes hideDown {
             0% { bottom: 0px; transform: translateX(-50%) scale(1); opacity: 1; }
-            100% { bottom: min(-60px, -13.5vw); transform: translateX(-50%) scale(0.5); opacity: 0; }
+            100% { bottom: -60px; bottom: min(-60px, -13.5vw); transform: translateX(-50%) scale(0.5); opacity: 0; }
         }
         .mole.hit {
             animation: hit 0.2s ease-out forwards;
         }
         @keyframes hit {
             0% { bottom: 0px; transform: translateX(-50%) scale(1); }
-            100% { bottom: min(-60px, -13.5vw); transform: translateX(-50%) scale(0.5); opacity: 0; }
+            100% { bottom: -60px; bottom: min(-60px, -13.5vw); transform: translateX(-50%) scale(0.5); opacity: 0; }
         }
         
         .mole.skull {
@@ -665,10 +664,11 @@
         document.addEventListener('gesturestart', (e) => e.preventDefault());
         document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
         
-        // ✅ INICIALIZAR TELEGRAM GAMES SDK
-        Telegram.Game.init();
-        
-        const user = Telegram.Game.user || {};
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        const user = tg.initDataUnsafe?.user || {};
         const userId = user.id || 'anonymous';
         const userName = user.first_name ? 
             (user.last_name ? `${user.first_name} ${user.last_name}` : user.first_name) : 
@@ -711,66 +711,118 @@
         let spawnRate = 600;
         let moleVisibleTime = 1500;
         
-        // 🖼️ PRECARGAR IMÁGENES
         const perickkoImage = new Image();
         perickkoImage.src = 'perickko.png';
+        
         const valeforImage = new Image();
         valeforImage.src = 'valefor.png';
+        
         const kikoImage = new Image();
         kikoImage.src = 'kiko.png';
+        
         const nandorsImage = new Image();
         nandorsImage.src = 'nandors.png';
+        
         const alejandoImage = new Image();
         alejandoImage.src = 'alejando.png';
+        
         const cebolloImage = new Image();
         cebolloImage.src = 'cebollo.png';
+        
         const pakitoImage = new Image();
         pakitoImage.src = 'pakito.png';
+        
         const danijuImage = new Image();
         danijuImage.src = 'daniju.png';
+        
         const deividImage = new Image();
         deividImage.src = 'deivid.png';
+        
         const pepinoImage = new Image();
         pepinoImage.src = 'pepino.png';
+        
         const paolaImage = new Image();
         paolaImage.src = 'paola.png';
+        
         const carlitosImage = new Image();
         carlitosImage.src = 'carlitos.png';
+        
         const masmeImage = new Image();
         masmeImage.src = 'masme.png';
+        
         const eduImage = new Image();
         eduImage.src = 'edu.png';
+        
         const skullImage = new Image();
         skullImage.src = 'calavera.png';
+        
         const relojImage = new Image();
         relojImage.src = 'reloj.png';
 
         const levelNames = [
-            '⭐ Modo Novato', '🎯 Modo Aprendiz', '🔨 Modo Golpeador', '💪 Modo Valiente',
-            '⚡ Modo Rápido', '🎪 Modo Artista', '🏆 Modo Campeón', '👑 Modo Maestro',
-            '🔥 Modo Experto', '💎 Modo Elite', '🌟 Modo Leyenda', '🚀 Modo Cohete',
-            '⚡ Modo Rayo', '🎯 Modo Francotirador', '💀 Modo Destructor', '👹 Modo Demonio',
-            '🤖 Modo Máquina', '👽 Modo Alien', '🦸 Modo Superhéroe', '🔥 Modo PUTO AMO',
+            '⭐ Modo Novato',
+            '🎯 Modo Aprendiz',
+            '🔨 Modo Golpeador',
+            '💪 Modo Valiente',
+            '⚡ Modo Rápido',
+            '🎪 Modo Artista',
+            '🏆 Modo Campeón',
+            '👑 Modo Maestro',
+            '🔥 Modo Experto',
+            '💎 Modo Elite',
+            '🌟 Modo Leyenda',
+            '🚀 Modo Cohete',
+            '⚡ Modo Rayo',
+            '🎯 Modo Francotirador',
+            '💀 Modo Destructor',
+            '👹 Modo Demonio',
+            '🤖 Modo Máquina',
+            '👽 Modo Alien',
+            '🦸 Modo Superhéroe',
+            '🔥 Modo PUTO AMO',
             '💀 MODO DIOS'
         ];
 
         const encouragementMessages = [
-            '¡Vamos, tú puedes! 💪', '¡Dale duro! 🔨', '¡Más rápido! ⚡', '¡Así se hace! 👑',
-            '¡Whola! 😎', '¡Eres una bestia! 🦾', '¡Dale que te doy! 💥', '¡Qué locura! 🤪',
-            '¡Imparable! 🔥', '¡Eres leyenda! 🌟', '¡Sigue así! 🤖', '¡Esto es arte! 🎨',
-            '¡Brutal! 💀', '¡Eres un dios! ⚡', '¡Qué nivel! 😱', '¡Otro rollo! 🎮',
-            '¡PUTO AMO! 👑', '¡No te paras! 🚧', '¡Nivel dios! 🙏', '¡A tope! 🚀'
+            '¡Vamos, tú puedes! 💪',
+            '¡Dale duro! 🔨',
+            '¡Más rápido! ⚡',
+            '¡Así se hace! 👑',
+            '¡Whola! 😎',
+            '¡Eres una bestia! 🦾',
+            '¡Dale que te doy! 💥',
+            '¡Qué locura! 🤪',
+            '¡Imparable! 🔥',
+            '¡Eres leyenda! 🌟',
+            '¡Sigue así! 🤖',
+            '¡Esto es arte! 🎨',
+            '¡Brutal! 💀',
+            '¡Eres un dios! ⚡',
+            '¡Qué nivel! 😱',
+            '¡Otro rollo! 🎮',
+            '¡PUTO AMO! 👑',
+            '¡No te paras! 🚧',
+            '¡Nivel dios! 🙏',
+            '¡A tope! 🚀'
         ];
 
         const milestoneMessages = {
-            50: '¡50 Puntos! Modo Aprendiz 🎯', 100: '¡100 Puntos! Doble dígito 💯',
-            150: '¡150 Puntos! Valiente 💪', 200: '¡200 Puntos! Rápido ⚡',
-            250: '¡250 Puntos! Artista 🎨', 300: '¡300 Puntos! Campeón 🏆',
-            350: '¡350 Puntos! Maestro 🧙', 400: '¡400 Puntos! ¡CUIDADO CON LA CALAVERA! 💀',
-            450: '¡450 Puntos! Élite 💎', 500: '¡500 Puntos! LEYENDA 🌟',
-            600: '¡600 Puntos! Luz ⚡', 700: '¡700 Puntos! Destructor 💀',
-            800: '¡800 Puntos! MÁQUINA 🤖', 900: '¡900 Puntos! SUPERHÉROE 🦸',
-            1000: '¡1000 Puntos! PUTO AMO 🔥', 1500: '¡1500 Puntos! ¿ERES DIOS? 💀',
+            50: '¡50 Puntos! Modo Aprendiz 🎯',
+            100: '¡100 Puntos! Doble dígito 💯',
+            150: '¡150 Puntos! Valiente 💪',
+            200: '¡200 Puntos! Rápido ⚡',
+            250: '¡250 Puntos! Artista 🎨',
+            300: '¡300 Puntos! Campeón 🏆',
+            350: '¡350 Puntos! Maestro 🧙',
+            400: '¡400 Puntos! ¡CUIDADO CON LA CALAVERA! 💀',
+            450: '¡450 Puntos! Élite 💎',
+            500: '¡500 Puntos! LEYENDA 🌟',
+            600: '¡600 Puntos! Luz ⚡',
+            700: '¡700 Puntos! Destructor 💀',
+            800: '¡800 Puntos! MÁQUINA 🤖',
+            900: '¡900 Puntos! SUPERHÉROE 🦸',
+            1000: '¡1000 Puntos! PUTO AMO 🔥',
+            1500: '¡1500 Puntos! ¿ERES DIOS? 💀',
             2000: '¡2000 Puntos! IMPOSIBLE 🤯'
         };
 
@@ -783,6 +835,7 @@
                 spawnRate = Math.max(80, 600 - (20 * 20) - (diosLevel * 10));
                 moleVisibleTime = Math.max(200, 1500 - (20 * 50) - (diosLevel * 25));
             }
+            
             if (gameRunning) {
                 clearInterval(moleInterval);
                 moleInterval = setInterval(spawnMole, spawnRate);
@@ -797,36 +850,47 @@
         
         function playSound(type) {
             if (!soundEnabled || !audioContext) return;
+            
             const osc = audioContext.createOscillator();
             const gain = audioContext.createGain();
             osc.connect(gain);
             gain.connect(audioContext.destination);
             
             if (type === 'whack') {
-                osc.frequency.value = 600; osc.type = 'sine';
+                osc.frequency.value = 600;
+                osc.type = 'sine';
                 gain.gain.setValueAtTime(0.3, audioContext.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-                osc.start(); osc.stop(audioContext.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.1);
             } else if (type === 'skull') {
-                osc.frequency.value = 150; osc.type = 'sawtooth';
+                osc.frequency.value = 150;
+                osc.type = 'sawtooth';
                 gain.gain.setValueAtTime(0.4, audioContext.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                osc.start(); osc.stop(audioContext.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.5);
             } else if (type === 'start') {
-                osc.frequency.value = 440; osc.type = 'sine';
+                osc.frequency.value = 440;
+                osc.type = 'sine';
                 gain.gain.setValueAtTime(0.2, audioContext.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                osc.start(); osc.stop(audioContext.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.2);
             } else if (type === 'gameover') {
-                osc.frequency.value = 200; osc.type = 'sawtooth';
+                osc.frequency.value = 200;
+                osc.type = 'sawtooth';
                 gain.gain.setValueAtTime(0.3, audioContext.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-                osc.start(); osc.stop(audioContext.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.4);
             } else if (type === 'hide') {
-                osc.frequency.value = 350; osc.type = 'sine';
+                osc.frequency.value = 350;
+                osc.type = 'sine';
                 gain.gain.setValueAtTime(0.15, audioContext.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                osc.start(); osc.stop(audioContext.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.2);
             } else if (type === 'extra-time') {
                 [500, 700, 900].forEach((f, i) => setTimeout(() => {
                     const o = audioContext.createOscillator(), g = audioContext.createGain();
@@ -837,10 +901,12 @@
                     o.start(); o.stop(audioContext.currentTime + 0.2);
                 }, i * 150));
             } else if (type === 'encouragement') {
-                osc.frequency.value = 700; osc.type = 'sine';
+                osc.frequency.value = 700;
+                osc.type = 'sine';
                 gain.gain.setValueAtTime(0.2, audioContext.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                osc.start(); osc.stop(audioContext.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.2);
             } else if (type === 'level-up') {
                 [400, 600, 800].forEach((f, i) => setTimeout(() => {
                     const o = audioContext.createOscillator(), g = audioContext.createGain();
@@ -851,10 +917,12 @@
                     o.start(); o.stop(audioContext.currentTime + 0.15);
                 }, i * 100));
             } else if (type === 'lose-life') {
-                osc.frequency.value = 250; osc.type = 'sawtooth';
+                osc.frequency.value = 250;
+                osc.type = 'sawtooth';
                 gain.gain.setValueAtTime(0.3, audioContext.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                osc.start(); osc.stop(audioContext.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.3);
             }
         }
         
@@ -866,11 +934,13 @@
         function toggleRadio() {
             if (radioLoading) return;
             radioEnabled = !radioEnabled;
+            
             if (radioEnabled) {
                 radioLoading = true;
                 radioBtn.classList.add('loading');
                 radioAudio.pause();
                 radioAudio.currentTime = 0;
+                
                 const playPromise = radioAudio.play();
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
@@ -892,8 +962,14 @@
         }
         
         function showEncouragement(isMilestone = false, milestoneScore = 0) {
-            let message = isMilestone && milestoneMessages[milestoneScore] ? milestoneMessages[milestoneScore] : 
-                encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+            let message = '';
+            
+            if (isMilestone && milestoneMessages[milestoneScore]) {
+                message = milestoneMessages[milestoneScore];
+            } else {
+                message = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+            }
+            
             encouragementMessage.innerText = message;
             encouragementMessage.classList.remove('show');
             void encouragementMessage.offsetWidth;
@@ -903,8 +979,10 @@
         
         function updateLevel() {
             const newLevel = Math.floor(score / 50) + 1;
+            
             if (newLevel > level) {
                 level = newLevel;
+                
                 if (level % 5 === 0 || level === 21) {
                     if (level >= 21) {
                         levelDisplay.innerText = '💀 MODO DIOS ' + (level - 20);
@@ -924,6 +1002,7 @@
                         levelDisplay.style.color = '#4ecdc4';
                     }
                 }
+                
                 updateGameSpeed();
             }
         }
@@ -945,20 +1024,29 @@
             lives--;
             updateLivesDisplay();
             playSound('lose-life');
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-            if (lives <= 0) endGame(reason);
+            
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('error');
+            }
+            
+            if (lives <= 0) {
+                endGame(reason);
+            }
         }
         
         function createHoles() {
             gameBoard.innerHTML = '';
             gameBoard.appendChild(extraTimeText);
+            
             for (let i = 0; i < 9; i++) {
                 const hole = document.createElement('div');
                 hole.className = 'hole';
                 hole.dataset.index = i;
+                
                 if (i < 3) hole.classList.add('row-1');
                 else if (i < 6) hole.classList.add('row-2');
                 else hole.classList.add('row-3');
+                
                 gameBoard.appendChild(hole);
             }
         }
@@ -967,18 +1055,24 @@
             if (score >= 400 && Math.random() < 0.10) {
                 return { image: skullImage, name: 'skull', isSkull: true };
             }
+            
             const birds = [perickkoImage, valeforImage, kikoImage, nandorsImage, alejandoImage, cebolloImage, pakitoImage, danijuImage, deividImage, pepinoImage, paolaImage, carlitosImage, masmeImage, eduImage];
-            return { image: birds[Math.floor(Math.random() * birds.length)], name: 'bird', isSkull: false };
+            const randomIndex = Math.floor(Math.random() * birds.length);
+            return { image: birds[randomIndex], name: 'bird', isSkull: false };
         }
         
         function spawnMole() {
             if (!gameRunning) return;
+            
             const available = [0,1,2,3,4,5,6,7,8].filter(i => !activeMoles.includes(i));
             if (available.length === 0) return;
+            
             const index = available[Math.floor(Math.random() * available.length)];
             const hole = document.querySelector(`[data-index="${index}"]`);
+            
             const mole = document.createElement('div');
             mole.className = 'mole';
+            
             const img = document.createElement('img');
             const randomBird = getRandomBirdImage();
             img.src = randomBird.image.src;
@@ -987,119 +1081,221 @@
                 mole.classList.add('skull');
                 img.alt = 'Calavera';
                 mole.dataset.isSkull = 'true';
-                const handleSkull = (e) => {
-                    e.preventDefault(); e.stopPropagation();
+                
+                mole.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     playSound('skull');
                     loseLife('💀 ¡Tocaste la calavera!');
                     mole.classList.add('hit');
-                    setTimeout(() => { if (mole.parentNode) { mole.remove(); activeMoles = activeMoles.filter(i => i !== index); } }, 200);
-                };
-                mole.addEventListener('touchstart', handleSkull, { passive: false });
-                mole.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
+                    setTimeout(() => {
+                        if (mole.parentNode) {
+                            mole.remove();
+                            activeMoles = activeMoles.filter(i => i !== index);
+                        }
+                    }, 200);
+                }, { passive: false });
+                
+                mole.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
             } else {
                 img.alt = randomBird.name;
                 mole.dataset.isSkull = 'false';
-                const handleWhack = (e) => { e.preventDefault(); e.stopPropagation(); whack(index, mole); };
-                mole.addEventListener('touchstart', handleWhack, { passive: false });
-                mole.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
+                
+                mole.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    whack(index, mole);
+                }, { passive: false });
+                
+                mole.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
             }
+            
             mole.appendChild(img);
+            
             hole.appendChild(mole);
             activeMoles.push(index);
-            setTimeout(() => { if (mole.parentNode && !mole.classList.contains('hit') && !mole.classList.contains('hiding')) hideMole(mole, index); }, moleVisibleTime);
+            
+            setTimeout(() => {
+                if (mole.parentNode && !mole.classList.contains('hit') && !mole.classList.contains('hiding')) {
+                    hideMole(mole, index);
+                }
+            }, moleVisibleTime);
         }
         
         function hideMole(mole, index) {
             mole.classList.add('hiding');
             playSound('hide');
-            setTimeout(() => { if (mole.parentNode) { mole.remove(); activeMoles = activeMoles.filter(i => i !== index); } }, 300);
+            
+            setTimeout(() => {
+                if (mole.parentNode) {
+                    mole.remove();
+                    activeMoles = activeMoles.filter(i => i !== index);
+                }
+            }, 300);
         }
         
         function createParticles(x, y) {
             const colors = ['#ffdd59', '#4ecdc4', '#ff6b6b', '#a55eea', '#26de81'];
+            
             for (let i = 0; i < 12; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 const size = Math.random() * 8 + 4;
                 const color = colors[Math.floor(Math.random() * colors.length)];
                 particle.style.cssText = `width:${size}px;height:${size}px;background:${color};left:${x}px;top:${y}px;`;
+                
                 const angle = (Math.random() * 360) * (Math.PI / 180);
                 const dist = Math.random() * 80 + 40;
                 particle.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
                 particle.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
                 particle.style.animationDuration = (Math.random() * 0.3 + 0.4) + 's';
+                
                 document.body.appendChild(particle);
                 setTimeout(() => particle.remove(), 700);
             }
+            
             for (let i = 0; i < 5; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
                 star.innerHTML = '⭐';
-                star.style.left = x + 'px'; star.style.top = y + 'px';
+                star.style.left = x + 'px';
+                star.style.top = y + 'px';
+                
                 const angle = (Math.random() * 360) * (Math.PI / 180);
-                const dist1 = Math.random() * 50 + 30, dist2 = Math.random() * 100 + 60;
+                const dist1 = Math.random() * 50 + 30;
+                const dist2 = Math.random() * 100 + 60;
                 star.style.setProperty('--tx1', Math.cos(angle) * dist1 + 'px');
                 star.style.setProperty('--ty1', Math.sin(angle) * dist1 + 'px');
                 star.style.setProperty('--tx2', Math.cos(angle) * dist2 + 'px');
                 star.style.setProperty('--ty2', Math.sin(angle) * dist2 + 'px');
                 star.style.animationDuration = (Math.random() * 0.3 + 0.5) + 's';
+                
                 document.body.appendChild(star);
                 setTimeout(() => star.remove(), 900);
             }
         }
         
         function whack(index, mole) {
-            if (!gameRunning || !mole || mole.classList.contains('hit') || mole.classList.contains('hiding')) return;
+            if (!gameRunning) return;
+            
+            if (!mole || mole.classList.contains('hit') || mole.classList.contains('hiding')) return;
+            
             mole.classList.add('hit');
             score += 10;
             scoreDisplay.innerText = score;
             playSound('whack');
+            
             const rect = mole.getBoundingClientRect();
-            createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            createParticles(x, y);
+            
             updateLevel();
-            if (score >= 400) dangerWarning.style.display = 'block';
-            if (score % 50 === 0 && milestoneMessages[score]) showEncouragement(true, score);
-            else if (score % 25 === 0) showEncouragement(false);
-            setTimeout(() => { if (mole.parentNode) { mole.remove(); activeMoles = activeMoles.filter(i => i !== index); } }, 200);
+            
+            if (score >= 400) {
+                dangerWarning.style.display = 'block';
+            }
+            
+            if (score % 50 === 0 && milestoneMessages[score]) {
+                showEncouragement(true, score);
+            } else if (score % 25 === 0) {
+                showEncouragement(false);
+            }
+            
+            setTimeout(() => {
+                if (mole.parentNode) {
+                    mole.remove();
+                    activeMoles = activeMoles.filter(i => i !== index);
+                }
+            }, 200);
         }
         
         function spawnExtraTimeClock() {
             if (!gameRunning || extraTimeAvailable) return;
+            
             const available = [0,1,2,3,4,5,6,7,8].filter(i => !activeMoles.includes(i));
             if (available.length === 0) return;
+            
             const index = available[Math.floor(Math.random() * available.length)];
             const hole = document.querySelector(`[data-index="${index}"]`);
+            
             extraTimeClock = document.createElement('div');
             extraTimeClock.className = 'extra-time-clock';
+            
             const img = document.createElement('img');
-            img.src = relojImage.src; img.alt = 'Reloj Tiempo Extra';
+            img.src = relojImage.src;
+            img.alt = 'Reloj Tiempo Extra';
             extraTimeClock.appendChild(img);
-            const handleCollect = (e) => { e.preventDefault(); e.stopPropagation(); collectExtraTime(index); };
-            extraTimeClock.addEventListener('touchstart', handleCollect, { passive: false });
-            extraTimeClock.onclick = (e) => { e.preventDefault(); e.stopPropagation(); };
+            
+            extraTimeClock.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                collectExtraTime(index);
+            }, { passive: false });
+            
+            extraTimeClock.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            };
+            
             hole.appendChild(extraTimeClock);
             extraTimeAvailable = true;
-            setTimeout(() => { if (extraTimeAvailable && gameRunning && extraTimeClock && extraTimeClock.parentNode) hideExtraTimeClock(index); }, 1500);
+            
+            setTimeout(() => {
+                if (extraTimeAvailable && gameRunning && extraTimeClock && extraTimeClock.parentNode) {
+                    hideExtraTimeClock(index);
+                }
+            }, 1500);
         }
         
         function hideExtraTimeClock(index) {
             if (!extraTimeClock || !extraTimeClock.parentNode) return;
+            
             extraTimeClock.classList.add('hiding');
             playSound('hide');
-            setTimeout(() => { if (extraTimeClock && extraTimeClock.parentNode) { extraTimeClock.remove(); extraTimeClock = null; extraTimeAvailable = false; } }, 300);
+            
+            setTimeout(() => {
+                if (extraTimeClock && extraTimeClock.parentNode) {
+                    extraTimeClock.remove();
+                    extraTimeClock = null;
+                    extraTimeAvailable = false;
+                }
+            }, 300);
         }
         
         function collectExtraTime(index) {
             if (!extraTimeAvailable || !gameRunning || !extraTimeClock) return;
+            
             extraTimeAvailable = false;
             timeLeft += 20;
             timerDisplay.innerText = timeLeft;
+            
             playSound('extra-time');
+            
             extraTimeText.classList.add('show');
-            setTimeout(() => extraTimeText.classList.remove('show'), 2000);
+            
+            setTimeout(() => {
+                extraTimeText.classList.remove('show');
+            }, 2000);
+            
             extraTimeClock.classList.add('clicked');
-            setTimeout(() => { if (extraTimeClock && extraTimeClock.parentNode) { extraTimeClock.remove(); extraTimeClock = null; } }, 300);
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            
+            setTimeout(() => {
+                if (extraTimeClock && extraTimeClock.parentNode) {
+                    extraTimeClock.remove();
+                    extraTimeClock = null;
+                }
+            }, 300);
+            
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
+            }
         }
         
         function startTimer() {
@@ -1107,70 +1303,111 @@
             timerDisplay.innerText = timeLeft;
             extraTimeAvailable = false;
             extraTimeText.classList.remove('show');
-            if (extraTimeClock) { extraTimeClock.remove(); extraTimeClock = null; }
+            if (extraTimeClock) {
+                extraTimeClock.remove();
+                extraTimeClock = null;
+            }
+            
             gameInterval = setInterval(() => {
                 timeLeft--;
                 timerDisplay.innerText = timeLeft;
-                if (timeLeft === 5 && !extraTimeAvailable && gameRunning) spawnExtraTimeClock();
+                
+                if (timeLeft === 5 && !extraTimeAvailable && gameRunning) {
+                    spawnExtraTimeClock();
+                }
+                
                 if (timeLeft <= 0) endGame('¡Se acabó el tiempo!');
             }, 1000);
         }
         
         function startGame() {
             if (gameRunning) return;
+            
             initAudio();
             playSound('start');
-            score = 0; timeLeft = 30; level = 1; lives = 4;
-            spawnRate = 600; moleVisibleTime = 1500;
-            activeMoles = []; extraTimeAvailable = false; gameRunning = true;
-            scoreDisplay.innerText = score; timerDisplay.innerText = timeLeft;
-            levelDisplay.innerText = levelNames[0]; levelDisplay.style.color = '#4ecdc4';
-            encouragementMessage.innerText = ''; encouragementMessage.classList.remove('show');
+            
+            score = 0;
+            timeLeft = 30;
+            level = 1;
+            lives = 4;
+            spawnRate = 600;
+            moleVisibleTime = 1500;
+            activeMoles = [];
+            extraTimeAvailable = false;
+            gameRunning = true;
+            
+            scoreDisplay.innerText = score;
+            timerDisplay.innerText = timeLeft;
+            levelDisplay.innerText = levelNames[0];
+            levelDisplay.style.color = '#4ecdc4';
+            encouragementMessage.innerText = '';
+            encouragementMessage.classList.remove('show');
             dangerWarning.style.display = 'none';
+            
             updateLivesDisplay();
-            gameOverScreen.classList.add('hidden'); startBtn.style.display = 'none';
+            
+            gameOverScreen.classList.add('hidden');
+            startBtn.style.display = 'none';
+            
             extraTimeText.classList.remove('show');
-            if (extraTimeClock) { extraTimeClock.remove(); extraTimeClock = null; }
-            createHoles(); startTimer();
+            if (extraTimeClock) {
+                extraTimeClock.remove();
+                extraTimeClock = null;
+            }
+            
+            createHoles();
+            startTimer();
+            
             moleInterval = setInterval(spawnMole, spawnRate);
         }
         
-        // ✅ GUARDAR PUNTUACIÓN CON TELEGRAM GAMES SDK
         function saveScore() {
-            if (typeof Telegram !== 'undefined' && Telegram.Game) {
-                Telegram.Game.setScore(score, true)
-                    .then(() => console.log('✅ Puntuación guardada en Telegram:', score))
-                    .catch(err => console.error('❌ Error al guardar:', err));
-            }
+            let scores = JSON.parse(localStorage.getItem('whackScores')) || [];
+            
+            scores.push({
+                userId: userId,
+                userName: userName,
+                score: score,
+                date: new Date().toISOString()
+            });
+            
+            scores.sort((a, b) => b.score - a.score);
+            scores = scores.slice(0, 10);
+            
+            localStorage.setItem('whackScores', JSON.stringify(scores));
         }
         
-        // ✅ MOSTRAR LEADERBOARD DE TELEGRAM
         function showLeaderboard() {
-            if (typeof Telegram !== 'undefined' && Telegram.Game) {
-                Telegram.Game.showLeaderboard({
-                    show_global: true,
-                    show_friends: true
-                });
-            } else {
-                // Fallback a localStorage si no está en Telegram
-                leaderboardScreen.classList.remove('hidden');
-                leaderboardList.innerHTML = '';
-                let scores = JSON.parse(localStorage.getItem('whackScores')) || [];
-                if (scores.length === 0) {
-                    leaderboardList.innerHTML = '<li style="padding: 20px; color: white;">📊 Sin puntuaciones aún. ¡Sé el primero!</li>';
-                    return;
-                }
-                scores.forEach((entry, index) => {
-                    const li = document.createElement('li');
-                    li.className = 'leaderboard-item';
-                    if (index === 0) li.classList.add('top-1');
-                    else if (index === 1) li.classList.add('top-2');
-                    else if (index === 2) li.classList.add('top-3');
-                    if (entry.userId === userId) li.classList.add('current-user');
-                    li.innerHTML = `<span class="rank-number">${index + 1}º</span><span class="user-name">${entry.userName}</span><span class="user-score">${entry.score} pts</span>`;
-                    leaderboardList.appendChild(li);
-                });
+            leaderboardScreen.classList.remove('hidden');
+            leaderboardList.innerHTML = '';
+            
+            let scores = JSON.parse(localStorage.getItem('whackScores')) || [];
+            
+            if (scores.length === 0) {
+                leaderboardList.innerHTML = '<li style="padding: 20px; color: white;">📊 Sin puntuaciones aún. ¡Sé el primero!</li>';
+                return;
             }
+            
+            scores.forEach((entry, index) => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                
+                if (index === 0) li.classList.add('top-1');
+                else if (index === 1) li.classList.add('top-2');
+                else if (index === 2) li.classList.add('top-3');
+                
+                if (entry.userId === userId) {
+                    li.classList.add('current-user');
+                }
+                
+                li.innerHTML = `
+                    <span class="rank-number">${index + 1}º</span>
+                    <span class="user-name">${entry.userName}</span>
+                    <span class="user-score">${entry.score} pts</span>
+                `;
+                
+                leaderboardList.appendChild(li);
+            });
         }
         
         function closeLeaderboard() {
@@ -1181,12 +1418,21 @@
             gameRunning = false;
             clearInterval(gameInterval);
             clearInterval(moleInterval);
+            
             playSound('gameover');
-            if (score > 0) saveScore();
+            
+            if (score > 0) {
+                saveScore();
+            }
+            
             extraTimeText.classList.remove('show');
             encouragementMessage.classList.remove('show');
-            if (extraTimeClock) { extraTimeClock.remove(); extraTimeClock = null; }
+            if (extraTimeClock) {
+                extraTimeClock.remove();
+                extraTimeClock = null;
+            }
             extraTimeAvailable = false;
+            
             gameOverReason.innerText = reason;
             finalScoreEl.innerText = score;
             gameOverScreen.classList.remove('hidden');
