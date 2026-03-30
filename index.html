@@ -126,12 +126,12 @@
             100% { bottom: -60px; transform: translateX(-50%) scale(0.5); opacity: 0; }
         }
         
-        /* 💀 CALAVERA (SIN RESPLANDOR ROJO - MÁS SUTIL) */
+        /* 💀 CALAVERA (SIN RESPLANDOR ROJO) */
         .mole.skull {
             animation: popUp 0.3s ease-out forwards;
         }
         .mole.skull img {
-            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));  /* ✅ Sombra normal, SIN rojo */
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
         }
         
         .extra-time-clock {
@@ -378,6 +378,8 @@
             font-weight: 500;
             max-width: 100px;
         }
+        
+        /* 🏆 PANTALLA FINAL - ✅ CORREGIDA AL TAMAÑO DEL TABLERO */
         #game-over-screen {
             position: fixed;
             top: 0;
@@ -393,29 +395,31 @@
         }
         .game-over-content {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 40px;
-            border-radius: 20px;
+            padding: 30px;
+            border-radius: 15px;
             text-align: center;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             border: 3px solid rgba(255,255,255,0.3);
+            width: 400px;  /* ✅ MISMO ANCHO QUE EL TABLERO */
+            max-width: 90%;
         }
         .game-over-title {
-            font-size: 36px;
+            font-size: 32px;  /* ✅ LIGERAMENTE MÁS PEQUEÑO */
             font-weight: bold;
             color: #ff6b6b;
             margin-bottom: 15px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
         .game-over-message {
-            font-size: 18px;
+            font-size: 16px;  /* ✅ LIGERAMENTE MÁS PEQUEÑO */
             color: #ffffff;
             margin-bottom: 20px;
         }
         .game-over-score {
-            font-size: 48px;
+            font-size: 42px;  /* ✅ LIGERAMENTE MÁS PEQUEÑO */
             font-weight: bold;
             color: #ffdd59;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
         .hidden { display: none !important; }
@@ -435,7 +439,6 @@
     
     <div id="level-display">⭐ Modo Novato</div>
     
-    <!-- ⚠️ ADVERTENCIA DE PELIGRO (desde 400 puntos) -->
     <div id="danger-warning">⚠️ ¡CUIDADO! NO TOQUES LA CALAVERA 💀</div>
     
     <div id="game-board">
@@ -444,7 +447,6 @@
     
     <div id="encouragement-message"></div>
     
-    <!-- ❤️ VIDAS (CORAZONES) -->
     <div id="lives-container">
         <span class="heart" id="heart-1">❤️</span>
         <span class="heart" id="heart-2">❤️</span>
@@ -515,7 +517,6 @@
         let spawnRate = 600;
         let moleVisibleTime = 1500;
         
-        // 🖼️ PRECARGAR LAS 15 IMÁGENES
         const perickkoImage = new Image();
         perickkoImage.src = 'perickko.png';
         
@@ -561,7 +562,6 @@
         const skullImage = new Image();
         skullImage.src = 'calavera.png';
         
-        // ⏰ PRECARGAR IMAGEN DEL RELOJ
         const relojImage = new Image();
         relojImage.src = 'reloj.png';
 
@@ -857,7 +857,6 @@
             }
         }
         
-        // 🎲 OBTENER IMAGEN ALEATORIA
         function getRandomBirdImage() {
             if (score >= 400 && Math.random() < 0.10) {
                 return { image: skullImage, name: 'skull', isSkull: true };
@@ -935,11 +934,9 @@
             }, 300);
         }
         
-        // ✨ CREAR PARTÍCULAS
         function createParticles(x, y) {
             const colors = ['#ffdd59', '#4ecdc4', '#ff6b6b', '#a55eea', '#26de81'];
             
-            // Partículas
             for (let i = 0; i < 12; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
@@ -957,7 +954,6 @@
                 setTimeout(() => particle.remove(), 700);
             }
             
-            // Estrellas
             for (let i = 0; i < 5; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
@@ -989,7 +985,6 @@
             scoreDisplay.innerText = score;
             playSound('whack');
             
-            // ✅ CREAR PARTÍCULAS Y ESTRELLAS
             const rect = mole.getBoundingClientRect();
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
