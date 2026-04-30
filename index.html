@@ -740,6 +740,11 @@
         masmeImage.src = 'masme.png';
         const eduImage = new Image();
         eduImage.src = 'edu.png';
+        
+        // ✅ NUEVO PERSONAJE: ALFARO
+        const alfaroImage = new Image();
+        alfaroImage.src = 'alfaro.png';
+        
         const skullImage = new Image();
         skullImage.src = 'calavera.png';
         const relojImage = new Image();
@@ -967,7 +972,13 @@
             if (score >= 400 && Math.random() < 0.10) {
                 return { image: skullImage, name: 'skull', isSkull: true };
             }
-            const birds = [perickkoImage, valeforImage, kikoImage, nandorsImage, alejandoImage, cebolloImage, pakitoImage, danijuImage, deividImage, pepinoImage, paolaImage, carlitosImage, masmeImage, eduImage];
+            // ✅ ALFARO AÑADIDO AL ARRAY DE PERSONAJES
+            const birds = [
+                perickkoImage, valeforImage, kikoImage, nandorsImage, 
+                alejandoImage, cebolloImage, pakitoImage, danijuImage, 
+                deividImage, pepinoImage, paolaImage, carlitosImage, 
+                masmeImage, eduImage, alfaroImage
+            ];
             return { image: birds[Math.floor(Math.random() * birds.length)], name: 'bird', isSkull: false };
         }
         
